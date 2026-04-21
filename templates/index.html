@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Attack Prediction</title>
+    <style>
+        :root {
+            --bg: #eadcc8;
+            --panel: rgba(255, 248, 240, 0.94);
+            --ink: #3f2a1d;
+            --accent: #7b4b2a;
+            --accent-soft: #b07a4f;
+            --line: #d7b899;
+            --danger: #8a3b2e;
+            --success: #5f4a2f;
+            --field-bg: #fffdf8;
+            --shadow: rgba(86, 53, 31, 0.18);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Cambria, Georgia, "Times New Roman", serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(174, 117, 75, 0.34) 0, transparent 28%),
+                radial-gradient(circle at bottom right, rgba(109, 73, 48, 0.28) 0, transparent 30%),
+                linear-gradient(145deg, #f4eadb 0%, #e6d3bb 48%, #dcc1a4 100%);
+        }
+
+        .wrapper {
+            max-width: 980px;
+            margin: 40px auto;
+            padding: 24px;
+        }
+
+        .card {
+            background:
+                linear-gradient(180deg, rgba(255, 248, 240, 0.98) 0%, rgba(247, 236, 222, 0.95) 100%);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: 0 18px 40px var(--shadow);
+            overflow: hidden;
+        }
+
+        .hero {
+            padding: 32px 28px 12px;
+            background: linear-gradient(135deg, rgba(121, 75, 42, 0.12), rgba(176, 122, 79, 0.08));
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+        }
+
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+
+        form {
+            padding: 24px 28px 28px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            color: #5b3b27;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cfaf8d;
+            border-radius: 12px;
+            background: var(--field-bg);
+            font-size: 1rem;
+            color: var(--ink);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cfaf8d;
+            border-radius: 12px;
+            background: var(--field-bg);
+            font-size: 1rem;
+            color: var(--ink);
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(123, 75, 42, 0.14);
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 13px 22px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #6f4326, #a56c43, #c28a5f);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 12px 24px rgba(123, 75, 42, 0.22);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 16px 28px rgba(123, 75, 42, 0.28);
+        }
+
+        .result, .error {
+            margin: 0 28px 28px;
+            padding: 18px;
+            border-radius: 14px;
+        }
+
+        .result {
+            background: linear-gradient(135deg, #f3e2cf, #ead2b8);
+            color: #5a3a24;
+            border: 1px solid #d1ae8c;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #f4ddd5, #ecd0c6);
+            color: var(--danger);
+            border: 1px solid #d2a193;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="card">
+            <div class="hero">
+                <h1>Prediksi Risiko Serangan Jantung</h1>
+                <p>Model dari Google Colab sudah bisa dipakai di web Flask. Isi data pasien di bawah lalu kirim untuk melihat hasil prediksi.</p>
+            </div>
+
+            <form action="/predict-form" method="post">
+                <div class="grid">
+                    <div>
+                        <label for="age">Age</label>
+                        <input id="age" name="age" type="number" step="any" required value="{{ values.age if values else '' }}">
+                    </div>
+                    <div>
+                        <label for="sex">Sex</label>
+                        <select id="sex" name="sex" required>
+                            <option value="">Pilih sex</option>
+                            {% for option in categorical_fields.sex %}
+                            <option value="{{ option.value }}" {% if values and values.sex|string == option.value|string %}selected{% endif %}>{{ option.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="cp">Chest Pain Type</label>
+                        <select id="cp" name="cp" required>
+                            <option value="">Pilih chest pain type</option>
+                            {% for option in categorical_fields.cp %}
+                            <option value="{{ option.value }}" {% if values and values.cp|string == option.value|string %}selected{% endif %}>{{ option.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="trestbps">Resting Blood Pressure</label>
+                        <input id="trestbps" name="trestbps" type="number" step="any" required value="{{ values.trestbps if values else '' }}">
+                    </div>
+                    <div>
+                        <label for="chol">Cholesterol</label>
+                        <input id="chol" name="chol" type="number" step="any" required value="{{ values.chol if values else '' }}">
+                    </div>
+                    <div>
+                        <label for="fbs">Fasting Blood Sugar</label>
+                        <select id="fbs" name="fbs" required>
+                            <option value="">Pilih status</option>
+                            {% for option in categorical_fields.fbs %}
+                            <option value="{{ option.value }}" {% if values and values.fbs|string == option.value|string %}selected{% endif %}>{{ option.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="restecg">Rest ECG</label>
+                        <select id="restecg" name="restecg" required>
+                            <option value="">Pilih hasil ECG</option>
+                            {% for option in categorical_fields.restecg %}
+                            <option value="{{ option.value }}" {% if values and values.restecg|string == option.value|string %}selected{% endif %}>{{ option.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="thalach">Max Heart Rate</label>
+                        <input id="thalach" name="thalach" type="number" step="any" required value="{{ values.thalach if values else '' }}">
+                    </div>
+                    <div>
+                        <label for="exang">Exercise Induced Angina</label>
+                        <select id="exang" name="exang" required>
+                            <option value="">Pilih status</option>
+                            {% for option in categorical_fields.exang %}
+                            <option value="{{ option.value }}" {% if values and values.exang|string == option.value|string %}selected{% endif %}>{{ option.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="oldpeak">Oldpeak</label>
+                        <input id="oldpeak" name="oldpeak" type="number" step="any" required value="{{ values.oldpeak if values else '' }}">
+                    </div>
+                </div>
+
+                <button type="submit">Prediksi Sekarang</button>
+            </form>
+
+            {% if result %}
+            <div class="result">
+                <strong>Hasil prediksi:</strong> {{ "Berisiko" if result.prediction == 1 else "Tidak berisiko" }}<br>
+                Tingkat risiko: {{ result.risk_level }}<br>
+                Probabilitas tidak berisiko: {{ "%.2f"|format(result.probability_no_heart_attack * 100) }}%<br>
+                Probabilitas berisiko: {{ "%.2f"|format(result.probability_heart_attack * 100) }}%<br>
+                Rekomendasi: {{ result.recommendation }}
+            </div>
+            {% endif %}
+
+            {% if error %}
+            <div class="error">
+                <strong>Error:</strong> {{ error }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
